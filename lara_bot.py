@@ -645,7 +645,9 @@ async def post_init(application):
 
 # --- ANA ÇALIŞTIRICI ---
 if __name__ == '__main__':
+    # JobQueue'nun yüklenmesi için build() öncesi post_init ekliyoruz
     app = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
+    
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("profil", profil))
     app.add_handler(CommandHandler("dil", dil_sec))
@@ -655,5 +657,5 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler("duyuru", duyuru_yap))
     app.add_handler(CallbackQueryHandler(button_handler))
     
-    print("🚀 Lara v9.8 Hybrid Powered by DeepMind Aktif...")
+    print("🚀 Lara v9.8 Hybrid Aktif...")
     app.run_polling(drop_pending_updates=True)
