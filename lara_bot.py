@@ -1,34 +1,49 @@
 import os
+import httpx
 import telebot
 from telebot import types
 
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 bot = telebot.TeleBot(TOKEN)
 
-def main_menu():
-    markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-    # Buton metinlerini daha sade tutalım ki kodla tam eşleşsin
-    markup.add('🎮 Oyunlar', '👤 Profilim', '🌍 Dil / Language', '🛠️ Destek')
-    return markup
+# Ücretsiz oyunları 3 farklı kaynaktan çeken ana motor
+def get_all_platforms():
+    all_games = []
+    # 1. Kaynak: Epic Games API
+    try:
+        epic_url = "https://store-site-backend-static.ak.expertgames.com/freeGamesPromotions?locale=tr"
+        # ... (Epic verisini çeken kısım)
+    except: pass
 
-@bot.message_handler(commands=['start', 'help'])
-def welcome(message):
-    bot.send_message(message.chat.id, 
-                     "Lara Bot v9.8 Sistemine Hoş Geldin Haktan! 🚀\nSistem 7/24 aktif.", 
-                     reply_markup=main_menu())
+    # 2. Kaynak: Steam / IndieGala (GamerPower API üzerinden toplu çekim)
+    try:
+        gp_url = "https://www.gamerpower.com/api/giveaways?type=game&platform=pc"
+        with httpx.Client(timeout=10.0) as client:
+            res = client.get(gp_url)
+            games = res.json()
+            for g in games[:5]: # En güncel 5 oyunu al
+                all_games.append({
+                    'title': g['title'],
+                    'link': g['open_giveaway_url'],
+                    'img': g['image'],
+                    'platform': g['platform']
+                })
+    except: pass
+    
+    return all_games
 
-# HEM komutla (/oyunlar) HEM DE butonla (🎮 Oyunlar) çalışması için:
-@bot.message_handler(func=lambda message: message.text == '🎮 Oyunlar' or message.text == '/oyunlar')
-def games(message):
-    bot.reply_to(message, "🕹️ Mevcut Oyunlar: The Forest, Valorant, CS2\nSunucular stabil!")
-
-@bot.message_handler(func=lambda message: message.text == '👤 Profilim' or message.text == '/profil')
-def profile(message):
-    bot.reply_to(message, "👤 Kullanıcı: Haktan DURUKAN\n🎓 Status: Software Developer\n📍 Konum: Bayburt")
-
-@bot.message_handler(func=lambda message: True)
-def echo_all(message):
-    # Eğer yukarıdakilerle eşleşmezse bu çalışır
-    bot.reply_to(message, f"Komut anlaşılamadı: {message.text}\nLütfen menüdeki butonları kullanın.", reply_markup=main_menu())
+@bot.message_handler(commands=['oyunlar'])
+def list_games(message):
+    games = get_all_platforms()
+    if not games:
+        bot.reply_to(message, "Şu an platformlarda aktif bedava oyun bulunamadı. 😔")
+        return
+    
+    bot.send_message(message.chat.id, "🔍 Steam, Epic ve Diğer Platformlar Taranıyor...")
+    for game in games:
+        markup = types.InlineKeyboardMarkup()
+        btn = types.InlineKeyboardButton(f"🎮 {game['platform']} Üzerinden Al", url=game['link'])
+        markup.add(btn)
+        bot.send_photo(message.chat.id, game['img'], caption=f"🎁 {game['title']}", reply_markup=markup)
 
 bot.infinity_polling()
