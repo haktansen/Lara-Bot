@@ -145,7 +145,6 @@ async def translate_text(text: str, target_lang: str) -> str:
         logging.error(f"Translation Error: {e}")
         return text
 
-# --- VERİTABANI MOTORU ---
 def load_db() -> Any:
     default_db = {
         "stats": {"total_games": 0, "total_announcements": 0, "total_savings": 0.0, "counted_games": []}, 
