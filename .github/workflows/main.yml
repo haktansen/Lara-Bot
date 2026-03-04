@@ -1,8 +1,8 @@
 name: Lara Bot 7/24 Auto-Hunter
 on:
   schedule:
-    - cron: '0 * * * *' # Tam olarak her saat başında otomatik çalışır
-  workflow_dispatch: # Senin manuel çalıştırman için buton
+    - cron: '0 * * * *' # Her saat başı otomatik kontrol
+  workflow_dispatch: # Manuel çalıştırma butonu
 
 jobs:
   build:
