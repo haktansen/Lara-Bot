@@ -158,22 +158,17 @@ def load_db() -> Any:
     try:
         with open(DB_FILE, "r", encoding="utf-8") as f:
             db = json.load(f)
-            # Eksik anahtarları kontrol et ve ekle
             if "stats" not in db: db["stats"] = default_db["stats"]
             if "users" not in db: db["users"] = {}
             
-            # Missing keys in stats
+            # Eksik stats anahtarlarını tamamla
             s = db["stats"]
             ds = default_db["stats"]
             for key in ds:
                 if key not in s:
                     s[key] = ds[key]
-            return db
-    except Exception as e:
-        logging.error(f"Veritabani yukleme hatasi: {e}")
-        return default_db
-            
-            # Veritabanı Migrasyonu: Dil anahtarı eksik kullanıcılara ekle
+
+            # Veritabanı Migrasyonu
             updated_db = False
             for u_id in db["users"]:
                 if "language" not in db["users"][u_id]:
@@ -181,12 +176,10 @@ def load_db() -> Any:
                     updated_db = True
             if updated_db:
                 save_db(db)
-                
             return db
     except Exception as e:
         logging.error(f"Veritabani yukleme hatasi: {e}")
         return default_db
-
 def save_db(db):
     try:
         with open(DB_FILE, "w", encoding="utf-8") as f:
