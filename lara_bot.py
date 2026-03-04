@@ -11,7 +11,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Callb
 
 # --- AYARLAR ---
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-ADMIN_ID = 7210093343 
+ADMIN_ID = 7210093343
 DB_FILE = "database.json"
 
 # --- YERELLEŞTİRME (LOCALIZATION) ---
@@ -139,20 +139,11 @@ async def translate_text(text: str, target_lang: str) -> str:
         return text
     try:
         loop = asyncio.get_event_loop()
-        translated = await loop.run_in_executor(
-            None, _sync_translate, text, target_lang
-        )
+        translated = await loop.run_in_executor(None, _sync_translate, text, target_lang)
         return str(translated)
     except Exception as e:
         logging.error(f"Translation Error: {e}")
         return text
-
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-# Kütüphane loglarını sustur
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logging.getLogger("apscheduler").setLevel(logging.WARNING)
-logging.getLogger("telegram").setLevel(logging.WARNING)
-logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 # --- VERİTABANI MOTORU ---
 def load_db() -> Any:
@@ -167,8 +158,12 @@ def load_db() -> Any:
     try:
         with open(DB_FILE, "r", encoding="utf-8") as f:
             db = json.load(f)
-            if "stats" not in db:
-                db["stats"] = default_db["stats"]
+            if "stats" not in db: db["stats"] = default_db["stats"]
+            if "users" not in db: db["users"] = {}
+            return db
+    except Exception as e:
+        logging.error(f"Veritabani yukleme hatasi: {e}")
+        return default_db
             
             # Missing keys in stats
             s = db["stats"]
