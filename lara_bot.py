@@ -146,8 +146,6 @@ async def translate_text(text: str, target_lang: str) -> str:
         return text
 
 # --- VERİTABANI MOTORU ---
-
-# --- VERİTABANI MOTORU ---
 def load_db() -> Any:
     default_db = {
         "stats": {"total_games": 0, "total_announcements": 0, "total_savings": 0.0, "counted_games": []}, 
@@ -160,12 +158,9 @@ def load_db() -> Any:
     try:
         with open(DB_FILE, "r", encoding="utf-8") as f:
             db = json.load(f)
+            # Eksik anahtarları kontrol et ve ekle
             if "stats" not in db: db["stats"] = default_db["stats"]
             if "users" not in db: db["users"] = {}
-            return db
-    except Exception as e:
-        logging.error(f"Veritabani yukleme hatasi: {e}")
-        return default_db
             
             # Missing keys in stats
             s = db["stats"]
@@ -173,9 +168,10 @@ def load_db() -> Any:
             for key in ds:
                 if key not in s:
                     s[key] = ds[key]
-            
-            if "users" not in db:
-                db["users"] = {}
+            return db
+    except Exception as e:
+        logging.error(f"Veritabani yukleme hatasi: {e}")
+        return default_db
             
             # Veritabanı Migrasyonu: Dil anahtarı eksik kullanıcılara ekle
             updated_db = False
